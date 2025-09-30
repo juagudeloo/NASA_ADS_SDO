@@ -4,7 +4,7 @@ class SDODocumentBase(SQLModel):
     title: str
     abstract: str
     authors: str
-    publication_date: int = Field(index=True)
+    publication_date: str = Field(index=True)
     doi: str | None = None
     bibcode: str | None = None
     citation_count: int | None = None
