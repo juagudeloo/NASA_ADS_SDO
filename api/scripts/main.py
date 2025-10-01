@@ -2,14 +2,22 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlmodel import Session, select
 from typing import List, Optional
 import sys
-sys.path.append("../")
+import os
+from pathlib import Path
+
+# Add the parent directory to the path to import modules
+current_dir = Path(__file__).parent
+api_dir = current_dir.parent
+sys.path.insert(0, str(api_dir))
+
 from modules.database import engine
 from modules.models import SDODocument, SDODocumentPublic
+from modules.config import API_TITLE, API_DESCRIPTION, API_VERSION, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 
 app = FastAPI(
-    title="SDO Documents API",
-    description="API for accessing Solar Dynamics Observatory research documents extracted from the NASA ADS database.",
-    version="1.0.0"
+    title=API_TITLE,
+    description=API_DESCRIPTION,
+    version=API_VERSION
 )
 
 def get_session():
@@ -19,7 +27,7 @@ def get_session():
 @app.get("/documents/", response_model=List[SDODocumentPublic])
 def read_documents(
     skip: int = Query(0, ge=0, description="Number of documents to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Number of documents to return"),
+    limit: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE, description="Number of documents to return"),
     year: Optional[int] = Query(None, description="Filter by publication year"),
     session: Session = Depends(get_session)
 ):
@@ -45,7 +53,7 @@ def read_document(document_id: int, session: Session = Depends(get_session)):
 def search_documents(
     q: str = Query(..., description="Search query for title or abstract"),
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
+    limit: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=MAX_PAGE_SIZE),
     session: Session = Depends(get_session)
 ):
     """Search documents by title or abstract content."""
@@ -73,4 +81,9 @@ def get_stats(session: Session = Depends(get_session)):
 @app.get("/")
 def root():
     """API root endpoint."""
-    return {"message": "SDO Documents API", "version": "1.0.0"}
+    return {"message": API_TITLE, "version": API_VERSION, "docs": "/docs"}
+
+if __name__ == "__main__":
+    import uvicorn
+    from modules.config import HOST, PORT, DEBUG
+    uvicorn.run(app, host=HOST, port=PORT, reload=DEBUG)
