@@ -1,11 +1,40 @@
-# NASA ADS SDO Database & API
+# NASA- 🚀 **FastAPI Web Service**: RESTful API for accessing SDO research documents
+- 🔗 **NASA ADS Integration**: Automatic generation of ADS URLs### Get comprehensive ADS links for a document
+```bash
+curl "http://localhost:8000/documents/1366704/ads-links"
+```
+
+### Download PDF (automatic source selection)
+```bash
+# Downloads PDF if available (tries arXiv first, then publisher)
+# Uses browser-like headers and follows redirects automatically
+curl -o paper.pdf "http://localhost:8000/documents/1366704/download-pdf"
+```
+
+### Download PDF from specific source
+```bash
+# Download from arXiv
+curl -o paper_arxiv.pdf "http://localhost:8000/documents/1366704/download-pdf?source=arxiv"
+
+# Download from publisher (most reliable for this document)
+curl -o paper_publisher.pdf "http://localhost:8000/documents/1366704/download-pdf?source=publisher"
+```
+
+### Get API statistics
+```bash
+curl "http://localhost:8000/stats/"
+``` document
+- 📄 **PDF Download**: Direct PDF download endpoints via NASA ADS link gateway
+- 🔍 **Search Functionality**: Search documents by title, abstract, or publication year SDO Database & API
 
 Based on the [NASA ADS API](https://ui.adsabs.harvard.edu/help/api/), this repository contains the necessary code to obtain all the published papers that make use of SDO (Solar Dynamics Observatory) data for solar atmospheric analysis, along with a FastAPI web service to access this data.
 
 ## Features
 
 - 🚀 **FastAPI Web Service**: RESTful API for accessing SDO research documents
-- 🔍 **Search Functionality**: Search documents by title, abstract, or publication year
+- � **NASA ADS Integration**: Automatic generation of ADS URLs for each document
+- 📄 **PDF Access**: Direct links to arXiv and publisher PDFs via ADS
+- �🔍 **Search Functionality**: Search documents by title, abstract, or publication year
 - 📊 **Statistics**: Get insights about the document collection
 - 📖 **Interactive Documentation**: Automatic API documentation with Swagger UI
 - 🐍 **Python 3.8+**: Modern Python support with type hints
@@ -109,10 +138,16 @@ Once the server is running, you can access:
 
 ### Documents
 
-- `GET /documents/` - Get paginated list of documents
+- `GET /documents/` - Get paginated list of documents with ADS URLs
   - Query parameters: `skip`, `limit`, `year`
-- `GET /documents/{id}` - Get specific document by ID
-- `GET /documents/search/` - Search documents by title or abstract
+  - **New**: Each document includes `ads_url` field pointing to NASA ADS
+- `GET /documents/{id}` - Get specific document by ID with ADS URL
+- `GET /documents/{id}/ads-links` - Get comprehensive ADS-related links for a document
+  - Returns: ADS URL, PDF links (arXiv/publisher), export links, related links
+- `GET /documents/{id}/download-pdf` - Download PDF automatically (tries arXiv first, then publisher)
+- `GET /documents/{id}/download-pdf?source=arxiv` - Download PDF from arXiv
+- `GET /documents/{id}/download-pdf?source=publisher` - Download PDF from publisher
+- `GET /documents/search/` - Search documents by title or abstract with ADS URLs
   - Query parameters: `q` (search query), `skip`, `limit`
 
 ### Statistics
@@ -125,7 +160,7 @@ Once the server is running, you can access:
 
 ## Examples
 
-### Get documents from 2020
+### Get documents from 2020 with ADS URLs
 ```bash
 curl "http://localhost:8000/documents/?year=2020&limit=10"
 ```
@@ -135,9 +170,29 @@ curl "http://localhost:8000/documents/?year=2020&limit=10"
 curl "http://localhost:8000/documents/search/?q=coronal%20mass%20ejections&limit=5"
 ```
 
+### Get comprehensive ADS links for a specific document
+```bash
+curl "http://localhost:8000/documents/1366704/ads-links"
+```
+
 ### Get API statistics
 ```bash
 curl "http://localhost:8000/stats/"
+```
+
+### Example Response with ADS URL
+```json
+{
+  "id": 1366704,
+  "title": "The EUV spectrum of the Sun: long-term variations...",
+  "abstract": "We present SOHO Coronal Diagnostic Spectrometer...",
+  "authors": "Del Zanna, G.; Andretta, V.; ...",
+  "publication_date": "2010-07-00",
+  "doi": "10.1051/0004-6361/200912904",
+  "bibcode": "2010A&A...518A..49D",
+  "citation_count": 27,
+  "ads_url": "https://ui.adsabs.harvard.edu/abs/2010A&A...518A..49D"
+}
 ```
 
 ## Development
@@ -201,8 +256,9 @@ The project uses a SQLite database containing SDO research papers from 2010-2024
 - **Authors**: List of authors
 - **Publication Date**: When the paper was published
 - **DOI**: Digital Object Identifier
-- **Bibcode**: NASA ADS bibliographic code
+- **Bibcode**: NASA ADS bibliographic code (used to generate ADS URLs)
 - **Citation Count**: Number of citations
+- **ADS URL**: Automatically generated link to the paper on NASA ADS (computed from bibcode)
 
 ### Database Schema
 
@@ -248,6 +304,23 @@ class SDODocument:
 
 5. **Port already in use**
    - Change the port in `.env` file or kill the process using port 8000
+
+6. **PDF download returns 404 error**
+   ```
+   HTTP 404: PDF not available for this document
+   ```
+   **Explanation:**
+   - Not all papers have publicly available PDFs through NASA ADS
+   - Some papers may only be available through subscription-based publishers
+   - Try different source options: `?source=arxiv` or `?source=publisher`
+   - Check the `/ads-links` endpoint first to see available download links
+   - The API now uses browser-like headers and follows redirects to improve success rate
+
+7. **PDF download is slow or times out**
+   - PDFs are streamed directly from NASA ADS link gateway after following redirects
+   - Large papers may take time to download (the API supports up to 30-second timeout)
+   - Network connectivity to NASA ADS servers and publisher websites affects download speed
+   - The API includes download progress headers showing the original source URL
 
 ### Clean Installation
 

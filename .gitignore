@@ -1,5 +1,51 @@
 .env
 
+# NASA ADS SDO Project Specific Files
+# Generated during setup and runtime
+api.log
+*.log
+nohup.out
+
+# Generated setup scripts (created by setup.sh)
+run_api.sh
+run_dev.sh
+
+# Test files generated during development
+test_*.pdf
+paper*.pdf
+download_*.pdf
+
+# Temporary API files
+.uvicorn.pid
+*.pid
+
+# Database backups (if any)
+api/database/*.db.backup
+api/database/*.db.bak
+api/database/*.sqlite.backup
+
+# Local configuration overrides
+.env.local
+.env.production
+.env.development
+config.local.py
+
+# IDE and editor files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

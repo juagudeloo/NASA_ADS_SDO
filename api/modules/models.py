@@ -1,4 +1,5 @@
 from sqlmodel import Field, SQLModel
+from typing import Optional
 
 class SDODocumentBase(SQLModel):
     title: str
@@ -14,3 +15,4 @@ class SDODocument(SDODocumentBase, table=True):
 
 class SDODocumentPublic(SDODocumentBase):
     id: int
+    ads_url: Optional[str] = None
