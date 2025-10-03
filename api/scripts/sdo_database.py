@@ -36,7 +36,7 @@ def extract_sdo_documents():
     fl_fields = ",".join(api_fields)
 
     encoded_url = urlencode({
-        "q": "abstract:SDO, year:2010",
+        "q": "abstract:SDO, year:2010, full:'solar dynamics observatory'",
         "fq": "property:refereed",
         "sort": "date desc",
         "fl": fl_fields,
